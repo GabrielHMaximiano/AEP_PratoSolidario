@@ -1,0 +1,18 @@
+// Arquitetura em camadas — Prato Solidário — gerar: dot -Tpng -Gdpi=200 diagrama-camadas.dot -o diagrama-camadas.png
+digraph Camadas {
+  graph [rankdir=TB, nodesep=0.35, ranksep=0.4, fontname="DejaVu Sans", bgcolor="white", pad=0.25];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=12, color="#2f6b3a", fillcolor="#f4f8f4", margin="0.18,0.08"];
+  edge  [color="#333333", fontname="DejaVu Sans", fontsize=10];
+  cliente [label=<<b>Cliente</b><br/><font point-size="10">interface web (index.html) · IntelliJ HTTP Client · Postman</font>>, fillcolor="#fbfbf4", color="#7a7a5a"];
+  controller [label=<<b>controller</b> — API REST (@RestController)<br/><font point-size="10">Auth · Doador · Instituicao · LoteDoacao · Reserva<br/>Impacto · Relatorio · Notificacao · GlobalExceptionHandler</font>>];
+  service [label=<<b>service</b> — regras de negócio (@Service, @Transactional)<br/><font point-size="10">UsuarioService&lt;T&gt; (abstrata) ← DoadorService, InstituicaoService<br/>LoteDoacao · Reserva · Notificacao · Impacto · Relatorio · Auth</font>>];
+  model [label=<<b>model</b> — domínio orientado a objetos<br/><font point-size="10">Usuario (abstrata) ← Doador, Instituicao<br/>ImpactoSocial (interface)<br/>LoteDoacao · Reserva · Notificacao</font>>];
+  repository [label=<<b>repository</b> — persistência (JdbcTemplate)<br/><font point-size="10">RepositorioCrud&lt;T&gt; (interface)<br/>UsuarioJdbcRepository&lt;T&gt; (abstrata)<br/>← DoadorRepository, InstituicaoRepository<br/>LoteDoacao · Reserva · Notificacao · Relatorio</font>>];
+  banco [label=<<b>PostgreSQL</b><br/><font point-size="10">/database: 01_schema.sql (DDL) · 02_seed.sql (DML)</font>>, shape=cylinder, style=filled, fillcolor="#f3f6fa", color="#40618a"];
+  cliente -> controller [label="  HTTP + JSON"];
+  controller -> service [label="  DTOs (records)"];
+  service -> model [label="  usa"];
+  service -> repository [label="  usa"];
+  repository -> model [style=dashed, arrowhead=vee, label=" monta objetos", constraint=false];
+  repository -> banco [label="  SQL via JDBC"];
+}

@@ -1,0 +1,81 @@
+// DER (modelo relacional PostgreSQL) — Prato Solidário — gerar: dot -Tpng -Gdpi=200 diagrama-der.dot -o diagrama-der.png
+digraph DER {
+  graph [rankdir=TB, splines=ortho, nodesep=0.7, ranksep=0.8, fontname="DejaVu Sans", bgcolor="white", pad=0.3];
+  node  [shape=plain, fontname="DejaVu Sans", fontsize=10];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#333333", arrowhead=none];
+
+  usuarios [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>usuarios</b></td></tr>
+      <tr><td align="left"><b>PK</b></td><td align="left"><u>id</u></td><td align="left">SERIAL</td></tr>
+      <tr><td></td><td align="left">nome</td><td align="left">VARCHAR(150) NOT NULL</td></tr>
+      <tr><td><b>UQ</b></td><td align="left">email</td><td align="left">VARCHAR(150) NOT NULL</td></tr>
+      <tr><td></td><td align="left">senha_hash</td><td align="left">VARCHAR(255) NOT NULL</td></tr>
+      <tr><td></td><td align="left">tipo_usuario</td><td align="left">VARCHAR(20) CHECK (DOADOR | INSTITUICAO)</td></tr>
+    </table>>];
+
+  doadores [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>doadores</b></td></tr>
+      <tr><td align="left"><b>PK, FK</b></td><td align="left"><u>usuario_id</u></td><td align="left">INTEGER → usuarios.id</td></tr>
+      <tr><td><b>UQ</b></td><td align="left">documento</td><td align="left">VARCHAR(20) NOT NULL</td></tr>
+      <tr><td></td><td align="left">tipo_estabelecimento</td><td align="left">VARCHAR(50) NOT NULL</td></tr>
+      <tr><td></td><td align="left">regiao</td><td align="left">VARCHAR(100) NOT NULL</td></tr>
+    </table>>];
+
+  instituicoes [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>instituicoes</b></td></tr>
+      <tr><td align="left"><b>PK, FK</b></td><td align="left"><u>usuario_id</u></td><td align="left">INTEGER → usuarios.id</td></tr>
+      <tr><td></td><td align="left">area_atuacao</td><td align="left">VARCHAR(100) NOT NULL</td></tr>
+      <tr><td></td><td align="left">capacidade_atendimento</td><td align="left">INTEGER CHECK (&gt; 0)</td></tr>
+    </table>>];
+
+  lotes_doacao [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>lotes_doacao</b></td></tr>
+      <tr><td align="left"><b>PK</b></td><td align="left"><u>id</u></td><td align="left">SERIAL</td></tr>
+      <tr><td align="left"><b>FK</b></td><td align="left">doador_id</td><td align="left">INTEGER → doadores.usuario_id</td></tr>
+      <tr><td></td><td align="left">tipo_alimento</td><td align="left">VARCHAR(100) NOT NULL</td></tr>
+      <tr><td></td><td align="left">quantidade_kg</td><td align="left">DECIMAL(10,2) CHECK (&gt; 0)</td></tr>
+      <tr><td></td><td align="left">data_validade</td><td align="left">DATE NOT NULL</td></tr>
+      <tr><td></td><td align="left">retirada_inicio</td><td align="left">TIMESTAMP NOT NULL</td></tr>
+      <tr><td></td><td align="left">retirada_fim</td><td align="left">TIMESTAMP CHECK (&gt; inicio)</td></tr>
+      <tr><td></td><td align="left">status</td><td align="left">VARCHAR(20) DISPONIVEL | RESERVADO | RETIRADO</td></tr>
+      <tr><td></td><td align="left">data_publicacao</td><td align="left">TIMESTAMP NOT NULL</td></tr>
+    </table>>];
+
+  reservas [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>reservas</b> (associativa)</td></tr>
+      <tr><td align="left"><b>PK</b></td><td align="left"><u>id</u></td><td align="left">SERIAL</td></tr>
+      <tr><td align="left"><b>FK</b></td><td align="left">lote_id</td><td align="left">INTEGER → lotes_doacao.id</td></tr>
+      <tr><td align="left"><b>FK</b></td><td align="left">instituicao_id</td><td align="left">INTEGER → instituicoes.usuario_id</td></tr>
+      <tr><td></td><td align="left">data_reserva</td><td align="left">TIMESTAMP NOT NULL</td></tr>
+      <tr><td></td><td align="left">data_retirada</td><td align="left">TIMESTAMP (na conclusão)</td></tr>
+      <tr><td></td><td align="left">familias_atendidas</td><td align="left">INTEGER CHECK (&gt; 0)</td></tr>
+      <tr><td></td><td align="left">status</td><td align="left">VARCHAR(20) ATIVA | CONCLUIDA | CANCELADA</td></tr>
+      <tr><td colspan="3" align="left"><i>UNIQUE (lote_id) WHERE status IN (ATIVA, CONCLUIDA)</i></td></tr>
+    </table>>];
+
+  notificacoes [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="3" bgcolor="#f3f6fa">
+      <tr><td colspan="3" bgcolor="#dfe7f1"><b>notificacoes</b></td></tr>
+      <tr><td align="left"><b>PK</b></td><td align="left"><u>id</u></td><td align="left">SERIAL</td></tr>
+      <tr><td align="left"><b>FK</b></td><td align="left">instituicao_id</td><td align="left">INTEGER → instituicoes.usuario_id</td></tr>
+      <tr><td align="left"><b>FK</b></td><td align="left">lote_id</td><td align="left">INTEGER → lotes_doacao.id</td></tr>
+      <tr><td></td><td align="left">mensagem</td><td align="left">VARCHAR(255) NOT NULL</td></tr>
+      <tr><td></td><td align="left">data_criacao</td><td align="left">TIMESTAMP NOT NULL</td></tr>
+      <tr><td></td><td align="left">lida</td><td align="left">BOOLEAN DEFAULT FALSE</td></tr>
+    </table>>];
+
+  usuarios -> doadores [taillabel="1", headlabel="0..1", xlabel="especializa"];
+  usuarios -> instituicoes [taillabel="1", headlabel="0..1", xlabel="especializa"];
+  doadores -> lotes_doacao [taillabel="1", headlabel="0..*", xlabel="publica"];
+  lotes_doacao -> reservas [taillabel="1", headlabel="0..*", xlabel="gera"];
+  instituicoes -> reservas [taillabel="1", headlabel="0..*", xlabel="realiza"];
+  instituicoes -> notificacoes [taillabel="1", headlabel="0..*", xlabel="recebe"];
+  lotes_doacao -> notificacoes [taillabel="1", headlabel="0..*", xlabel="origina"];
+  { rank=same; doadores; instituicoes; }
+  { rank=same; reservas; notificacoes; }
+}

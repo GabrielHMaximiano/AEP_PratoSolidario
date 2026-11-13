@@ -1,0 +1,117 @@
+### =====================================================================
+### Prato Solidário — exemplos de chamadas da API
+### No IntelliJ: abra este arquivo e clique no ▶ ao lado de cada requisição.
+### (Também funciona no VS Code com a extensão "REST Client".)
+### ATENÇÃO: ajuste as datas dos exemplos para datas futuras — lotes vencidos são recusados.
+### =====================================================================
+
+### Login (Sprint 1)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{ "email": "marta@padaria.com", "senha": "123456" }
+
+### ---------- CRUD da entidade principal: LoteDoacao ----------
+
+### CREATE — publicar lote (RF01). Validade hoje/amanhã => crítico => notifica a região (RF06)
+POST http://localhost:8080/api/lotes
+Content-Type: application/json
+
+{
+  "doadorId": 1,
+  "tipoAlimento": "Sonhos e roscas",
+  "quantidadeKg": 4.5,
+  "dataValidade": "2026-11-20",
+  "retiradaInicio": "2026-11-19T18:00",
+  "retiradaFim": "2026-11-19T20:00"
+}
+
+### READ — todos os lotes
+GET http://localhost:8080/api/lotes
+
+### READ — lotes de um doador
+GET http://localhost:8080/api/lotes?doadorId=1
+
+### READ — disponíveis ordenados por validade, com urgência (RF02 + RF03)
+GET http://localhost:8080/api/lotes/disponiveis
+
+### READ — um lote
+GET http://localhost:8080/api/lotes/1
+
+### UPDATE — alterar lote (somente se DISPONIVEL)
+PUT http://localhost:8080/api/lotes/2
+Content-Type: application/json
+
+{
+  "tipoAlimento": "Bolos, doces e salgados",
+  "quantidadeKg": 7.0,
+  "dataValidade": "2026-11-21",
+  "retiradaInicio": "2026-11-20T17:00",
+  "retiradaFim": "2026-11-20T19:00"
+}
+
+### DELETE — excluir lote (somente se DISPONIVEL)
+DELETE http://localhost:8080/api/lotes/4
+
+### ---------- Reservas (RF02) ----------
+
+### Reservar lote 1 para a ONG Mesa Solidária (id 3)
+POST http://localhost:8080/api/reservas
+Content-Type: application/json
+
+{ "loteId": 1, "instituicaoId": 3 }
+
+### Reservas de uma instituição
+GET http://localhost:8080/api/reservas?instituicaoId=3
+
+### Concluir retirada (use o id retornado na reserva)
+PATCH http://localhost:8080/api/reservas/4/concluir
+Content-Type: application/json
+
+{ "familiasAtendidas": 25 }
+
+### Cancelar reserva ativa
+PATCH http://localhost:8080/api/reservas/3/cancelar
+
+### ---------- Impacto social polimórfico (RF04) ----------
+GET http://localhost:8080/api/impacto
+
+###
+GET http://localhost:8080/api/impacto/1
+
+### ---------- Relatórios (RF05) ----------
+GET http://localhost:8080/api/relatorios/resgates?inicio=2026-11-01&fim=2026-11-30
+
+###
+GET http://localhost:8080/api/relatorios/resgates/csv?doadorId=1
+
+### ---------- Notificações (RF06) ----------
+GET http://localhost:8080/api/instituicoes/3/notificacoes
+
+###
+PATCH http://localhost:8080/api/notificacoes/1/lida
+
+### ---------- Cadastro de usuários ----------
+POST http://localhost:8080/api/doadores
+Content-Type: application/json
+
+{
+  "nome": "Restaurante Sabor Caseiro",
+  "email": "sabor@caseiro.com",
+  "senha": "senha123",
+  "documento": "11.222.333/0001-81",
+  "tipoEstabelecimento": "Restaurante",
+  "regiao": "Centro"
+}
+
+###
+POST http://localhost:8080/api/instituicoes
+Content-Type: application/json
+
+{
+  "nome": "Casa de Apoio Esperança",
+  "email": "esperanca@apoio.org",
+  "senha": "senha123",
+  "areaAtuacao": "Centro",
+  "capacidadeAtendimento": 30
+}

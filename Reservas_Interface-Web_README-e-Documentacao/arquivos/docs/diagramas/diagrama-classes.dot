@@ -1,0 +1,95 @@
+// Diagrama de Classes (UML) — Prato Solidário — gerar: dot -Tpng -Gdpi=200 diagrama-classes.dot -o diagrama-classes.png
+digraph Classes {
+  graph [rankdir=TB, splines=ortho, nodesep=0.55, ranksep=0.75, fontname="DejaVu Sans", bgcolor="white", pad=0.3];
+  node  [shape=plain, fontname="DejaVu Sans", fontsize=10];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#333333"];
+
+  ImpactoSocial [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#fbfbf4">
+      <tr><td><i>«interface»</i><br/><b>ImpactoSocial</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">+ calcularImpacto() : Double<br/>+ getUnidadeImpacto() : String</td></tr>
+    </table>>];
+
+  Usuario [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><i>«abstract»</i><br/><b><i>Usuario</i></b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- id : Integer<br/>- nome : String<br/>- email : String<br/>- senhaHash : String</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ autenticar(senha : String) : Boolean<br/>+ definirSenha(senha : String) : void<br/>+ validar() : void<br/><i>+ getTipoUsuario() : TipoUsuario</i></td></tr>
+    </table>>];
+
+  Doador [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>Doador</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- documento : String<br/>- tipoEstabelecimento : String<br/>- regiao : String<br/>- lotes : List&lt;LoteDoacao&gt;</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ publicarLote(...) : LoteDoacao<br/>+ getTipoUsuario() : TipoUsuario  «@Override»<br/>+ validar() : void  «@Override»<br/>+ calcularImpacto() : Double  «@Override»<br/>+ getUnidadeImpacto() : String  «@Override»</td></tr>
+    </table>>];
+
+  Instituicao [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>Instituicao</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- areaAtuacao : String<br/>- capacidadeAtendimento : Integer<br/>- reservas : List&lt;Reserva&gt;</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ reservarLote(lote : LoteDoacao) : Reserva<br/>+ atendeRegiao(regiao : String) : boolean<br/>+ getTipoUsuario() : TipoUsuario  «@Override»<br/>+ validar() : void  «@Override»<br/>+ calcularImpacto() : Double  «@Override»<br/>+ getUnidadeImpacto() : String  «@Override»</td></tr>
+    </table>>];
+
+  LoteDoacao [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>LoteDoacao</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- id : Integer<br/>- tipoAlimento : String<br/>- quantidadeKg : Double<br/>- dataValidade : LocalDate<br/>- janelaRetirada : JanelaRetirada<br/>- status : StatusLote<br/>- dataPublicacao : LocalDateTime</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ calcularUrgencia() : NivelUrgencia<br/>+ validar() : void<br/>+ definirJanelaRetirada(inicio, fim) : void<br/>+ reservar() : void<br/>+ marcarRetirado() : void<br/>+ liberar() : void</td></tr>
+    </table>>];
+
+  Reserva [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>Reserva</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- id : Integer<br/>- dataReserva : LocalDateTime<br/>- dataRetirada : LocalDateTime<br/>- familiasAtendidas : Integer<br/>- status : StatusReserva</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ concluir(familias : Integer) : void<br/>+ cancelar() : void</td></tr>
+    </table>>];
+
+  Notificacao [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>Notificacao</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- id : Integer<br/>- mensagem : String<br/>- dataCriacao : LocalDateTime<br/>- lida : Boolean</td></tr>
+      <tr><td sides="t" align="left" balign="left"><u>+ paraLoteUrgente(i, l) : Notificacao</u><br/>+ marcarComoLida() : void</td></tr>
+    </table>>];
+
+  JanelaRetirada [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#f4f8f4">
+      <tr><td><b>JanelaRetirada</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">- inicio : LocalDateTime  {final}<br/>- fim : LocalDateTime  {final}</td></tr>
+      <tr><td sides="t" align="left" balign="left">+ validar() : void<br/>+ contem(momento : LocalDateTime) : boolean<br/>+ getDuracao() : Duration</td></tr>
+    </table>>];
+
+  NivelUrgencia [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#fbfbf4">
+      <tr><td><i>«enumeration»</i><br/><b>NivelUrgencia</b></td></tr>
+      <tr><td sides="t" align="left" balign="left">VENCIDO<br/>CRITICO  (0–1 dia)<br/>ATENCAO  (2–3 dias)<br/>NORMAL  (&gt; 3 dias)</td></tr>
+    </table>>];
+
+  Enums [label=<
+    <table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#fbfbf4">
+      <tr><td><i>«enumeration»</i> <b>StatusLote</b></td></tr>
+      <tr><td sides="t" align="left">DISPONIVEL · RESERVADO · RETIRADO</td></tr>
+      <tr><td sides="t"><i>«enumeration»</i> <b>StatusReserva</b></td></tr>
+      <tr><td sides="t" align="left">ATIVA · CONCLUIDA · CANCELADA</td></tr>
+      <tr><td sides="t"><i>«enumeration»</i> <b>TipoUsuario</b></td></tr>
+      <tr><td sides="t" align="left">DOADOR · INSTITUICAO</td></tr>
+    </table>>];
+
+  // hierarquia de cima para baixo (setas invertidas com dir=back para manter a superclasse acima)
+  ImpactoSocial -> Usuario [dir=back, style=dashed, arrowtail=empty, xlabel="realiza "];
+  Usuario -> Doador [dir=back, arrowtail=empty];
+  Usuario -> Instituicao [dir=back, arrowtail=empty];
+  { rank=same; Doador; Instituicao; }
+  Doador -> Instituicao [style=invis];
+
+  Doador -> LoteDoacao [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="0..*", xlabel="publica"];
+  LoteDoacao -> Reserva [arrowhead=none, taillabel="1", headlabel="0..*", xlabel="gera"];
+  Instituicao -> Reserva [arrowhead=none, taillabel="1", headlabel="0..*", xlabel="realiza"];
+  Instituicao -> Notificacao [arrowhead=none, taillabel="1", headlabel="0..*", xlabel="recebe"];
+  LoteDoacao -> Notificacao [arrowhead=none, taillabel="1", headlabel="0..*", xlabel="origina"];
+  LoteDoacao -> NivelUrgencia [style=dashed, arrowhead=vee, xlabel="«usa»"];
+  LoteDoacao -> JanelaRetirada [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="1", xlabel="compõe"];
+  { rank=same; LoteDoacao; Notificacao; }
+  { rank=same; Reserva; NivelUrgencia; JanelaRetirada; Enums; }
+  NivelUrgencia -> Enums [style=invis];
+}

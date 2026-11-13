@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prato Solidário — ODS 2 Fome Zero</title>
+<style>
+  :root { --verde:#2f6b3a; --verde-claro:#e7f1e8; --borda:#d5ddd6; --texto:#1f2a22; --cinza:#5d6b60;
+          --critico:#b3261e; --atencao:#b26a00; --normal:#2f6b3a; --vencido:#6b6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--texto); background:#f6f8f6; }
+  header { background:var(--verde); color:#fff; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; } header small { opacity:.85; }
+  nav { display:flex; gap:6px; flex-wrap:wrap; }
+  nav button { background:transparent; border:1px solid rgba(255,255,255,.5); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; }
+  nav button.ativo { background:#fff; color:var(--verde); }
+  main { max-width:1100px; margin:20px auto; padding:0 16px; }
+  section { display:none; } section.ativa { display:block; }
+  .card { background:#fff; border:1px solid var(--borda); border-radius:10px; padding:16px 18px; margin-bottom:16px; }
+  .card h2 { margin:0 0 12px; font-size:17px; color:var(--verde); }
+  .grade { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px 14px; }
+  label { display:flex; flex-direction:column; font-size:13px; color:var(--cinza); gap:4px; }
+  input, select { padding:8px; border:1px solid var(--borda); border-radius:6px; font-size:14px; color:var(--texto); }
+  button.prim { background:var(--verde); color:#fff; border:0; padding:9px 16px; border-radius:6px; cursor:pointer; font-size:14px; }
+  button.sec { background:#fff; color:var(--verde); border:1px solid var(--verde); padding:5px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
+  button.perigo { background:#fff; color:var(--critico); border:1px solid var(--critico); padding:5px 10px; border-radius:6px; cursor:pointer; font-size:13px; }
+  .acoes { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--borda); vertical-align:top; }
+  th { color:var(--cinza); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
+  td.num, th.num { text-align:right; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; color:#fff; }
+  .CRITICO { background:var(--critico); } .ATENCAO { background:var(--atencao); } .NORMAL { background:var(--normal); } .VENCIDO { background:var(--vencido); }
+  .status { font-size:12px; color:var(--cinza); }
+  .destaque { font-size:30px; font-weight:700; color:var(--verde); } .destaque small { font-size:14px; color:var(--cinza); font-weight:400; }
+  .totais { display:flex; gap:28px; flex-wrap:wrap; margin:6px 0 14px; }
+  .totais div { font-size:13px; color:var(--cinza); } .totais b { display:block; font-size:22px; color:var(--texto); }
+  .notif { padding:10px 12px; border-left:4px solid var(--critico); background:#fdf1f0; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; align-items:center; }
+  .notif.lida { border-left-color:var(--borda); background:#f4f4f4; color:var(--cinza); }
+  #mensagem { position:fixed; right:16px; bottom:16px; max-width:420px; padding:12px 16px; border-radius:8px; color:#fff; display:none; box-shadow:0 4px 14px rgba(0,0,0,.18); z-index:10; }
+  #mensagem.ok { background:var(--verde); } #mensagem.erro { background:var(--critico); }
+  .dica { font-size:13px; color:var(--cinza); margin:6px 0 0; }
+  .vazio { color:var(--cinza); font-style:italic; padding:8px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Prato Solidário</h1><small>Conectando excedentes de alimentos a quem precisa — ODS 2 Fome Zero</small></div>
+  <nav id="menu"></nav>
+</header>
+
+<main>
+  <!-- ================= ENTRAR / CADASTRAR ================= -->
+  <section id="tela-entrar" class="ativa">
+    <div class="card">
+      <h2>Entrar</h2>
+      <div class="grade">
+        <label>E-mail<input id="login-email" type="email" autocomplete="username"></label>
+        <label>Senha<input id="login-senha" type="password" autocomplete="current-password"></label>
+      </div>
+      <div class="acoes">
+        <button class="prim" onclick="entrar()">Entrar</button>
+        <span class="dica">Contas de demonstração (senha 123456):</span>
+        <button class="sec" onclick="preencherLogin('marta@padaria.com')">Padaria (doador)</button>
+        <button class="sec" onclick="preencherLogin('contato@mesasolidaria.org')">ONG Mesa Solidária (instituição)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Criar conta</h2>
+      <div class="grade">
+        <label>Perfil
+          <select id="cad-tipo" onchange="alternarCadastro()">
+            <option value="DOADOR">Doador (estabelecimento)</option>
+            <option value="INSTITUICAO">Instituição receptora</option>
+          </select>
+        </label>
+        <label>Nome<input id="cad-nome"></label>
+        <label>E-mail<input id="cad-email" type="email"></label>
+        <label>Senha (mín. 6)<input id="cad-senha" type="password"></label>
+        <label class="so-doador">CPF ou CNPJ<input id="cad-documento"></label>
+        <label class="so-doador">Tipo de estabelecimento<input id="cad-tipoEstab" placeholder="Padaria, mercado, restaurante..."></label>
+        <label class="so-doador">Região<input id="cad-regiao" placeholder="Ex.: Zona Norte"></label>
+        <label class="so-inst" style="display:none">Região de atuação<input id="cad-area" placeholder="Ex.: Zona Norte"></label>
+        <label class="so-inst" style="display:none">Capacidade (famílias)<input id="cad-capacidade" type="number" min="1"></label>
+      </div>
+      <div class="acoes"><button class="prim" onclick="cadastrar()">Cadastrar</button></div>
+    </div>
+  </section>
+
+  <!-- ================= PAINEL DO DOADOR ================= -->
+  <section id="tela-doador">
+    <div class="card">
+      <h2 id="titulo-form-lote">Publicar lote de alimento</h2>
+      <div class="grade">
+        <label>Tipo de alimento<input id="lote-tipo" placeholder="Ex.: Pães franceses"></label>
+        <label>Quantidade (kg)<input id="lote-kg" type="number" step="0.1" min="0.1"></label>
+        <label>Data de validade<input id="lote-validade" type="date"></label>
+        <label>Retirada — início<input id="lote-inicio" type="datetime-local"></label>
+        <label>Retirada — fim<input id="lote-fim" type="datetime-local"></label>
+      </div>
+      <div class="acoes">
+        <button class="prim" id="btn-salvar-lote" onclick="salvarLote()">Publicar lote</button>
+        <button class="sec" id="btn-cancelar-edicao" style="display:none" onclick="limparFormLote()">Cancelar edição</button>
+        <span class="dica">Lotes que vencem hoje ou amanhã são “críticos” e avisam as instituições da sua região.</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Meus lotes</h2>
+      <div id="tabela-meus-lotes"></div>
+    </div>
+    <div class="card"><h2>Meu impacto social</h2><div id="impacto-doador"></div></div>
+  </section>
+
+  <!-- ================= PAINEL DA INSTITUIÇÃO ================= -->
+  <section id="tela-instituicao">
+    <div class="card"><h2>Notificações de lotes críticos na sua região</h2><div id="lista-notificacoes"></div></div>
+    <div class="card">
+      <h2>Lotes disponíveis (ordenados pela validade mais próxima)</h2>
+      <div id="tabela-disponiveis"></div>
+    </div>
+    <div class="card"><h2>Minhas reservas</h2><div id="tabela-reservas"></div></div>
+    <div class="card"><h2>Meu impacto social</h2><div id="impacto-instituicao"></div></div>
+  </section>
+
+  <!-- ================= RELATÓRIOS ================= -->
+  <section id="tela-relatorios">
+    <div class="card">
+      <h2>Relatório de alimentos resgatados</h2>
+      <div class="grade">
+        <label>De<input id="rel-inicio" type="date"></label>
+        <label>Até<input id="rel-fim" type="date"></label>
+        <label>Doador<select id="rel-doador"><option value="">Todos</option></select></label>
+        <label>Instituição<select id="rel-instituicao"><option value="">Todas</option></select></label>
+      </div>
+      <div class="acoes">
+        <button class="prim" onclick="gerarRelatorio()">Gerar relatório</button>
+        <button class="sec" onclick="exportarCsv()">Exportar CSV</button>
+      </div>
+    </div>
+    <div class="card"><div id="resultado-relatorio" class="vazio">Escolha os filtros e clique em “Gerar relatório”.</div></div>
+  </section>
+
+  <!-- ================= IMPACTO GERAL ================= -->
+  <section id="tela-impacto">
+    <div class="card">
+      <h2>Impacto social de todos os participantes</h2>
+      <p class="dica" style="margin-top:0">A mesma operação <code>calcularImpacto()</code> devolve quilos doados para doadores e famílias atendidas para instituições (polimorfismo).</p>
+      <div id="tabela-impacto"></div>
+    </div>
+  </section>
+</main>
+
+<div id="mensagem"></div>
+
+<script>
+  let usuario = null;          // usuário logado {id, nome, email, tipoUsuario}
+  let loteEmEdicao = null;     // id do lote sendo editado
+  let meusLotes = {};          // lotes do doador, por id (usado na edição)
+
+  // ---------- utilidades ----------
+  async function api(metodo, url, corpo) {
+    const opcoes = { method: metodo, headers: {} };
+    if (corpo !== undefined) { opcoes.headers['Content-Type'] = 'application/json'; opcoes.body = JSON.stringify(corpo); }
+    const resposta = await fetch(url, opcoes);
+    if (resposta.status === 204) return null;
+    const dados = await resposta.json().catch(() => null);
+    if (!resposta.ok) throw new Error(dados && dados.mensagem ? dados.mensagem : 'Erro ' + resposta.status);
+    return dados;
+  }
+  function avisar(texto, erro) {
+    const caixa = document.getElementById('mensagem');
+    caixa.textContent = texto; caixa.className = erro ? 'erro' : 'ok'; caixa.style.display = 'block';
+    clearTimeout(avisar.timer); avisar.timer = setTimeout(() => caixa.style.display = 'none', 4500);
+  }
+  async function executar(acao) { try { await acao(); } catch (e) { avisar(e.message, true); } }
+  const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const data = d => d ? d.split('-').reverse().join('/') : '';
+  const dataHora = dt => dt ? data(dt.substring(0, 10)) + ' ' + dt.substring(11, 16) : '—';
+  const kg = n => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+  const badge = l => `<span class="badge ${l.urgencia}">${esc(l.urgenciaDescricao)}</span>`;
+  const valor = id => document.getElementById(id).value.trim();
+  const tabela = (cabecalho, linhas, vazio) => linhas.length
+      ? `<table><thead><tr>${cabecalho}</tr></thead><tbody>${linhas.join('')}</tbody></table>`
+      : `<div class="vazio">${vazio}</div>`;
+
+  // ---------- navegação ----------
+  function montarMenu() {
+    const itens = usuario === null ? [['entrar', 'Entrar']]
+      : usuario.tipoUsuario === 'DOADOR'
+        ? [['doador', 'Meu painel'], ['relatorios', 'Relatórios'], ['impacto', 'Impacto geral']]
+        : [['instituicao', 'Meu painel'], ['relatorios', 'Relatórios'], ['impacto', 'Impacto geral']];
+    let html = itens.map(([id, nome]) => `<button data-tela="${id}" onclick="mostrar('${id}')">${nome}</button>`).join('');
+    if (usuario) html += `<button onclick="sair()">Sair (${esc(usuario.nome)})</button>`;
+    document.getElementById('menu').innerHTML = html;
+  }
+  function mostrar(tela) {
+    document.querySelectorAll('section').forEach(s => s.classList.toggle('ativa', s.id === 'tela-' + tela));
+    document.querySelectorAll('nav button[data-tela]').forEach(b => b.classList.toggle('ativo', b.dataset.tela === tela));
+    const carregar = { doador: carregarDoador, instituicao: carregarInstituicao, relatorios: carregarFiltros, impacto: carregarImpactoGeral }[tela];
+    if (carregar) executar(carregar);
+  }
+
+  // ---------- login / cadastro ----------
+  function preencherLogin(email) { document.getElementById('login-email').value = email; document.getElementById('login-senha').value = '123456'; }
+  function entrar() {
+    executar(async () => {
+      usuario = await api('POST', '/api/auth/login', { email: valor('login-email'), senha: document.getElementById('login-senha').value });
+      avisar('Bem-vindo(a), ' + usuario.nome + '!');
+      montarMenu(); mostrar(usuario.tipoUsuario === 'DOADOR' ? 'doador' : 'instituicao');
+    });
+  }
+  function sair() { usuario = null; montarMenu(); mostrar('entrar'); }
+  function alternarCadastro() {
+    const doador = valor('cad-tipo') === 'DOADOR';
+    document.querySelectorAll('.so-doador').forEach(e => e.style.display = doador ? '' : 'none');
+    document.querySelectorAll('.so-inst').forEach(e => e.style.display = doador ? 'none' : '');
+  }
+  function cadastrar() {
+    executar(async () => {
+      const comum = { nome: valor('cad-nome'), email: valor('cad-email'), senha: document.getElementById('cad-senha').value };
+      if (valor('cad-tipo') === 'DOADOR') {
+        await api('POST', '/api/doadores', { ...comum, documento: valor('cad-documento'), tipoEstabelecimento: valor('cad-tipoEstab'), regiao: valor('cad-regiao') });
+      } else {
+        await api('POST', '/api/instituicoes', { ...comum, areaAtuacao: valor('cad-area'), capacidadeAtendimento: Number(valor('cad-capacidade')) || null });
+      }
+      avisar('Cadastro realizado! Agora é só entrar.');
+      document.getElementById('login-email').value = comum.email;
+    });
+  }
+
+  // ---------- painel do doador ----------
+  async function carregarDoador() {
+    const lotes = await api('GET', '/api/lotes?doadorId=' + usuario.id);
+    meusLotes = Object.fromEntries(lotes.map(l => [l.id, l]));
+    document.getElementById('tabela-meus-lotes').innerHTML = tabela(
+      '<th>Alimento</th><th class="num">Kg</th><th>Validade</th><th>Urgência</th><th>Retirada</th><th>Status</th><th></th>',
+      lotes.map(l => `<tr><td>${esc(l.tipoAlimento)}</td><td class="num">${kg(l.quantidadeKg)}</td><td>${data(l.dataValidade)}</td>
+        <td>${l.status === 'DISPONIVEL' ? badge(l) : '—'}</td><td>${dataHora(l.retiradaInicio)} – ${dataHora(l.retiradaFim).substring(11)}</td>
+        <td class="status">${l.status}</td>
+        <td>${l.status === 'DISPONIVEL' ? `<button class="sec" onclick="editarLote(${l.id})">Editar</button>
+             <button class="perigo" onclick="excluirLote(${l.id})">Excluir</button>` : ''}</td></tr>`),
+      'Você ainda não publicou lotes.');
+    await carregarImpacto('impacto-doador');
+  }
+  function corpoLote() {
+    return { doadorId: usuario.id, tipoAlimento: valor('lote-tipo'), quantidadeKg: Number(valor('lote-kg')) || null,
+             dataValidade: valor('lote-validade') || null, retiradaInicio: valor('lote-inicio') || null, retiradaFim: valor('lote-fim') || null };
+  }
+  function salvarLote() {
+    executar(async () => {
+      if (loteEmEdicao) {
+        await api('PUT', '/api/lotes/' + loteEmEdicao, corpoLote());
+        avisar('Lote atualizado.');
+      } else {
+        const r = await api('POST', '/api/lotes', corpoLote());
+        avisar(`Lote publicado (urgência: ${r.lote.urgenciaDescricao}).` +
+               (r.instituicoesNotificadas ? ` ${r.instituicoesNotificadas} instituição(ões) da região foram notificadas.` : ''));
+      }
+      limparFormLote(); await carregarDoador();
+    });
+  }
+  function editarLote(id) {
+    const l = meusLotes[id];
+    loteEmEdicao = l.id;
+    document.getElementById('lote-tipo').value = l.tipoAlimento;
+    document.getElementById('lote-kg').value = l.quantidadeKg;
+    document.getElementById('lote-validade').value = l.dataValidade;
+    document.getElementById('lote-inicio').value = l.retiradaInicio.substring(0, 16);
+    document.getElementById('lote-fim').value = l.retiradaFim.substring(0, 16);
+    document.getElementById('titulo-form-lote').textContent = 'Editar lote #' + l.id;
+    document.getElementById('btn-salvar-lote').textContent = 'Salvar alterações';
+    document.getElementById('btn-cancelar-edicao').style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function limparFormLote() {
+    loteEmEdicao = null;
+    ['lote-tipo', 'lote-kg', 'lote-validade', 'lote-inicio', 'lote-fim'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('titulo-form-lote').textContent = 'Publicar lote de alimento';
+    document.getElementById('btn-salvar-lote').textContent = 'Publicar lote';
+    document.getElementById('btn-cancelar-edicao').style.display = 'none';
+  }
+  function excluirLote(id) {
+    if (!confirm('Excluir o lote #' + id + '?')) return;
+    executar(async () => { await api('DELETE', '/api/lotes/' + id); avisar('Lote excluído.'); await carregarDoador(); });
+  }
+
+  // ---------- painel da instituição ----------
+  async function carregarInstituicao() {
+    const [notificacoes, disponiveis, reservas] = await Promise.all([
+      api('GET', `/api/instituicoes/${usuario.id}/notificacoes`),
+      api('GET', '/api/lotes/disponiveis'),
+      api('GET', '/api/reservas?instituicaoId=' + usuario.id)]);
+    document.getElementById('lista-notificacoes').innerHTML = notificacoes.length
+      ? notificacoes.map(n => `<div class="notif ${n.lida ? 'lida' : ''}"><span>${esc(n.mensagem)} <span class="status">(${dataHora(n.dataCriacao)})</span></span>
+          ${n.lida ? '' : `<button class="sec" onclick="marcarLida(${n.id})">Marcar como lida</button>`}</div>`).join('')
+      : '<div class="vazio">Nenhuma notificação.</div>';
+    document.getElementById('tabela-disponiveis').innerHTML = tabela(
+      '<th>Urgência</th><th>Alimento</th><th class="num">Kg</th><th>Validade</th><th>Doador / região</th><th>Retirada</th><th></th>',
+      disponiveis.map(l => `<tr><td>${badge(l)}</td><td>${esc(l.tipoAlimento)}</td><td class="num">${kg(l.quantidadeKg)}</td>
+        <td>${data(l.dataValidade)}</td><td>${esc(l.doadorNome)}<br><span class="status">${esc(l.regiao)}</span></td>
+        <td>${dataHora(l.retiradaInicio)} – ${dataHora(l.retiradaFim).substring(11)}</td>
+        <td><button class="prim" onclick="reservar(${l.id})">Reservar</button></td></tr>`),
+      'Nenhum lote disponível no momento.');
+    document.getElementById('tabela-reservas').innerHTML = tabela(
+      '<th>Alimento</th><th class="num">Kg</th><th>Doador</th><th>Reservado em</th><th>Retirado em</th><th class="num">Famílias</th><th>Status</th><th></th>',
+      reservas.map(r => `<tr><td>${esc(r.tipoAlimento)}</td><td class="num">${kg(r.quantidadeKg)}</td><td>${esc(r.doadorNome)}</td>
+        <td>${dataHora(r.dataReserva)}</td><td>${dataHora(r.dataRetirada)}</td><td class="num">${r.familiasAtendidas ?? '—'}</td>
+        <td class="status">${r.status}</td>
+        <td>${r.status === 'ATIVA' ? `<button class="sec" onclick="concluir(${r.id})">Concluir retirada</button>
+             <button class="perigo" onclick="cancelar(${r.id})">Cancelar</button>` : ''}</td></tr>`),
+      'Nenhuma reserva ainda.');
+    await carregarImpacto('impacto-instituicao');
+  }
+  function reservar(loteId) {
+    executar(async () => { await api('POST', '/api/reservas', { loteId, instituicaoId: usuario.id }); avisar('Lote reservado!'); await carregarInstituicao(); });
+  }
+  function concluir(id) {
+    const familias = prompt('Quantas famílias foram atendidas com este lote?');
+    if (familias === null) return;
+    executar(async () => { await api('PATCH', `/api/reservas/${id}/concluir`, { familiasAtendidas: Number(familias) || null });
+                           avisar('Retirada concluída. Obrigado!'); await carregarInstituicao(); });
+  }
+  function cancelar(id) {
+    if (!confirm('Cancelar esta reserva? O lote voltará a ficar disponível.')) return;
+    executar(async () => { await api('PATCH', `/api/reservas/${id}/cancelar`); avisar('Reserva cancelada.'); await carregarInstituicao(); });
+  }
+  function marcarLida(id) { executar(async () => { await api('PATCH', `/api/notificacoes/${id}/lida`); await carregarInstituicao(); }); }
+
+  // ---------- impacto ----------
+  async function carregarImpacto(alvo) {
+    const i = await api('GET', '/api/impacto/' + usuario.id);
+    const numero = i.tipoUsuario === 'DOADOR' ? kg(i.impacto) : Math.round(i.impacto);
+    document.getElementById(alvo).innerHTML = `<div class="destaque">${numero} <small>${esc(i.unidade)}</small></div>`;
+  }
+  async function carregarImpactoGeral() {
+    const lista = await api('GET', '/api/impacto');
+    document.getElementById('tabela-impacto').innerHTML = tabela('<th>Participante</th><th>Perfil</th><th class="num">Impacto</th><th>Unidade</th>',
+      lista.map(i => `<tr><td>${esc(i.nome)}</td><td class="status">${i.tipoUsuario}</td>
+        <td class="num">${i.tipoUsuario === 'DOADOR' ? kg(i.impacto) : Math.round(i.impacto)}</td><td>${esc(i.unidade)}</td></tr>`), 'Sem dados.');
+  }
+
+  // ---------- relatórios ----------
+  async function carregarFiltros() {
+    const [doadores, instituicoes] = await Promise.all([api('GET', '/api/doadores'), api('GET', '/api/instituicoes')]);
+    const opcoes = (lista, todos) => `<option value="">${todos}</option>` + lista.map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join('');
+    document.getElementById('rel-doador').innerHTML = opcoes(doadores, 'Todos');
+    document.getElementById('rel-instituicao').innerHTML = opcoes(instituicoes, 'Todas');
+  }
+  function parametrosRelatorio() {
+    const p = new URLSearchParams();
+    [['inicio', 'rel-inicio'], ['fim', 'rel-fim'], ['doadorId', 'rel-doador'], ['instituicaoId', 'rel-instituicao']]
+      .forEach(([nome, id]) => { if (valor(id)) p.append(nome, valor(id)); });
+    return p.toString();
+  }
+  function gerarRelatorio() {
+    executar(async () => {
+      const r = await api('GET', '/api/relatorios/resgates?' + parametrosRelatorio());
+      document.getElementById('resultado-relatorio').className = '';
+      document.getElementById('resultado-relatorio').innerHTML =
+        `<div class="totais"><div><b>${r.totalResgates}</b>resgates</div><div><b>${kg(r.totalKg)} kg</b>de alimentos</div><div><b>${r.totalFamilias}</b>famílias atendidas</div></div>` +
+        tabela('<th>Data</th><th>Doador</th><th>Instituição</th><th>Alimento</th><th class="num">Kg</th><th class="num">Famílias</th>',
+          r.resgates.map(x => `<tr><td>${dataHora(x.dataRetirada)}</td><td>${esc(x.doadorNome)}</td><td>${esc(x.instituicaoNome)}</td>
+            <td>${esc(x.tipoAlimento)}</td><td class="num">${kg(x.quantidadeKg)}</td><td class="num">${x.familiasAtendidas}</td></tr>`),
+          'Nenhum resgate encontrado com esses filtros.');
+    });
+  }
+  function exportarCsv() { window.location.href = '/api/relatorios/resgates/csv?' + parametrosRelatorio(); }
+
+  montarMenu();
+</script>
+</body>
+</html>
